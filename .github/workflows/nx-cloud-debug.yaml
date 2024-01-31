@@ -13,10 +13,10 @@ permissions:
 env:
   NX_VERBOSE_LOGGING: true
   NX_PERF_LOGGING: true
-  NX_NATIVE_LOGGING: nx
+  NX_NATIVE_LOGGING: nx::native::workspace
 
 jobs:
-  main:
+  debuging:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -34,8 +34,8 @@ jobs:
 
       - name: Nx Report
         run: |
-          nx report
-          nx daemon
+          npx nx report
+          npx nx daemon
       - uses: nrwl/nx-set-shas@v4
       - name: 'List Important Env Vars'
         run: |
@@ -48,19 +48,19 @@ jobs:
           echo "NX_BASE: $NX_BASE";
           echo "NX_HEAD: $NX_HEAD";
 
-      - name: Run Target
+      - name: Run Targets
         run: |
-          nx reset
-          NX_PROFILE=.nx/debug/nx-cloud-ci-no-cache.json npx nx run <my-project>:<target> --skip-nx-cache
-          nx reset
-          NX_PROFILE=.nx/debug/nx-cloud-ci-no-cloud.json npx nx run <my-project>:<target> --no-cloud
-          nx reset
-          NX_PROFILE=.nx/debug/nx-cloud-ci.json npx nx run <my-project>:<target>
+          npx nx reset
+          NX_PROFILE=.nx-debug/nx-cloud-ci-no-cache.json npx nx build demo --skip-nx-cache
+          npx nx reset
+          NX_PROFILE=.nx-debug/nx-cloud-ci-no-cloud.json npx nx build demo --no-cloud
+          npx nx reset
+          NX_PROFILE=.nx-debug/nx-cloud-ci.json npx nx build demo
 
       - name: Upload Debug Profiles
         uses: actions/upload-artifact@v4
         with:
           name: ci-run-profiles
-          path: ./nx/debug/*
+          path: .nx-debug/*
       # Once the workflow is ran, there should be a list of artifacts on the workflow,
       # please download along with the agent logs and send to nx cloud support
