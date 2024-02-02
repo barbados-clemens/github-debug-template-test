@@ -3,6 +3,7 @@ name: Nx Cloud Debug
 on:
   push:
     branches:
+      # or whichever branch you're testing with
       - main
   pull_request:
 
@@ -13,10 +14,11 @@ permissions:
 env:
   NX_VERBOSE_LOGGING: true
   NX_PERF_LOGGING: true
-  NX_NATIVE_LOGGING: nx
+  NX_NATIVE_LOGGING: nx::native::workspace
+  # NX_CLOUD_ACCESS_TOKEN: 'add token here if not in nx.json'
 
 jobs:
-  main:
+  debuging:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -27,15 +29,15 @@ jobs:
           node-version: 20
 
       # Setup environment as needed to get Nx to run
-      # such as any other scripts/commands to run databases/install tooling
+      # such as any other scripts/commands to run databases/install tooling, or different package managers
       - name: Setup
         run: |
           npm ci
 
       - name: Nx Report
         run: |
-          nx report
-          nx daemon
+          npx nx report
+          npx nx daemon
       - uses: nrwl/nx-set-shas@v4
       - name: 'List Important Env Vars'
         run: |
@@ -45,22 +47,28 @@ jobs:
           echo "GITHUB_REF_NAME: $GITHUB_REF_NAME";
           echo "GITHUB_EVENT_NAME: $GITHUB_EVENT_NAME";
           echo "NX_BRANCH: $NX_BRANCH";
+          echo "NX_RUN_GROUP: $NX_RUN_GROUP";
+          echo "NX_CI_EXECUTION_ID: $NX_CI_EXECUTION_ID";
+          echo "NX_CI_EXECUTION_ENV: $NX_CI_EXECUTION_ENV";
+          echo "NX_CLOUD_DISTRIBUTED_EXECUTION: $NX_CLOUD_DISTRIBUTED_EXECUTION";
+          echo "NX_CACHE_DIRECTORY: $NX_CACHE_DIRECTORY";
+          echo "NX_NO_CLOUD: $NX_NO_CLOUD";
           echo "NX_BASE: $NX_BASE";
           echo "NX_HEAD: $NX_HEAD";
 
-      - name: Run Target
+      - name: Run Targets
         run: |
-          nx reset
-          NX_PROFILE=.nx/debug/nx-cloud-ci-no-cache.json npx nx run <my-project>:<target> --skip-nx-cache
-          nx reset
-          NX_PROFILE=.nx/debug/nx-cloud-ci-no-cloud.json npx nx run <my-project>:<target> --no-cloud
-          nx reset
-          NX_PROFILE=.nx/debug/nx-cloud-ci.json npx nx run <my-project>:<target>
+          npx nx reset
+          NX_PROFILE=.nx-debug/nx-cloud-ci-no-cache.json npx nx build ui-store --skip-nx-cache
+          npx nx reset
+          NX_PROFILE=.nx-debug/nx-cloud-ci-no-cloud.json npx nx build ui-store --no-cloud
+          npx nx reset
+          NX_PROFILE=.nx-debug/nx-cloud-ci.json npx nx build ui-store
 
       - name: Upload Debug Profiles
         uses: actions/upload-artifact@v4
         with:
           name: ci-run-profiles
-          path: ./nx/debug/*
+          path: .nx-debug/*
       # Once the workflow is ran, there should be a list of artifacts on the workflow,
       # please download along with the agent logs and send to nx cloud support
