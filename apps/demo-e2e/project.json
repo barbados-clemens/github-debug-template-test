@@ -15,5 +15,5 @@
       "executor": "@nx/eslint:lint"
     }
   },
-  "implicitDependencies": ["demo"]
+  "implicitDependencies": ["ui-store"]
 }
